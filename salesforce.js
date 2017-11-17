@@ -113,7 +113,43 @@ let createCase = (propertyId, customerName, customerId) => {
             }
         });
     });
+    
+let createNewCase = (subject, description, customername, priority, reason) => {
 
+    return new Promise((resolve, reject) => {
+        let custid = '';
+        let q = `SELECT id
+                 FROM Contact
+                WHERE Name = ${customername}
+                LIMIT 1`;
+        org.query({query: q}, (err, resp) => {
+            if (err) {
+                reject("Could not find the Contact in Salesforce");
+            } else {
+                custid = resp.records[0].ID;
+            }
+        });
+        
+        let c = nforce.createSObject('Case');
+        c.set('subject', `${subject}`);
+        c.set('description', `${description}`);
+        c.set('origin', 'Alexa');
+        c.set('status', 'New');
+        c.set('priority', `${priority}`);
+        c.set('reason', `${reason}`);
+        c.set('Contact',custid);
+
+        org.insert({sobject: c}, err => {
+            if (err) {
+                console.error(err);
+                reject("An error occurred while creating a case");
+            } else {
+                resolve(c);
+            }
+        });
+    });
+    
+    
 };
 
 login();
